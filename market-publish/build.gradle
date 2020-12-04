@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group 'org.market'
+version '1.0'
+
+sourceCompatibility = 1.8
+mainClassName = 'com.market.publish.MarketPublishVtc'
+
+shadowJar {
+    classifier = 'fat'
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+}
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile project (":market-common")
+}

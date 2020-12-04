@@ -1,0 +1,8 @@
+rootProject.name = 'market-ws'
+include 'market-repository'
+include 'market-standalone'
+include 'market-collector'
+include 'market-publish'
+include 'market-bridge'
+include 'market-common'
+

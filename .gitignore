@@ -1,0 +1,10 @@
+/gradle/
+/ignite/
+/.idea/
+/.gradle/
+/build/
+/market-collector/build/
+/market-common/build/
+/market-publish/build/
+/market-repository/build/
+/market-standalone/build/

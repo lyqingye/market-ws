@@ -1,0 +1,96 @@
+### 获取自定义交易对转换为通用交易对的映射
+GET http://localhost:8089/market/symbol/c2g/mappings
+Accept: application/json
+
+### 更新自定义交易对转换为通用交易对的映射
+PUT http://localhost:8089/market/symbol/c2g/mapping
+Accept: application/json
+Content-Type: application/json
+
+{
+  "source": "AAA-USDT",
+  "target": "aaausdt"
+}
+
+### 获取最新市场价 (交易对自动映射)
+GET http://localhost:8089/market/price/latest/v2
+Accept: application/json
+
+
+<> 2020-11-24T114606.200.txt
+
+### 获取最新市场价 (无交易对映射)
+GET http://localhost:8089/market/price/latest/
+Accept: application/json
+
+### 修改市场价
+PUT http://localhost:8089/market/price
+Accept: application/json
+Content-Type: application/json
+
+{
+  "symbol": "AAA-USDT",
+  "price": "1000"
+}
+
+### 获取所有收集器状态信息
+GET http://localhost:8089/market/collector/list
+Accept: application/json
+
+### 部署一个收集器
+PUT http://localhost:8089/market/collector/deploy
+Accept: application/json
+Content-Type: application/json
+
+{
+  "collectorName": "com.market.collector.impl.HuoBiKlineCollector"
+}
+
+### 取消部署一个收集器
+DELETE http://localhost:8089/market/collector/undeploy/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "collectorName": "com.market.collector.impl.HuoBiKlineCollector"
+}
+
+### 启动一个收集器
+PUT http://localhost:8089/market/collector/start
+Accept: application/json
+Content-Type: application/json
+
+{
+  "collectorName": "com.market.collector.impl.HuoBiKlineCollector"
+}
+
+### 停止一个收集器
+PUT http://localhost:8089/market/collector/stop
+Accept: application/json
+Content-Type: application/json
+
+{
+  "collectorName": "com.market.collector.impl.HuoBiKlineCollector"
+}
+
+### 收集器订阅一个交易对
+PUT http://localhost:8089/market/collector/subscribe
+Accept: application/json
+Content-Type: application/json
+
+{
+  "collectorName": "com.market.collector.impl.HuoBiKlineCollector",
+  "symbol": "BTC-USDT"
+}
+
+### 收集器取消订阅一个交易对
+PUT http://localhost:8089/market/collector/unsubscribe
+Accept: application/json
+Content-Type: application/json
+
+{
+  "collectorName": "com.market.collector.impl.HuoBiKlineCollector",
+  "symbol": "BTC-USDT"
+}
+
+###

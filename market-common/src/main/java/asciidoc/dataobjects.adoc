@@ -1,0 +1,38 @@
+= Cheatsheets
+
+[[CollectorStatusDto]]
+== CollectorStatusDto
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|===
+
+[[KlineTickResp]]
+== KlineTickResp
+
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[time]]`@time`|`Number (long)`|+++
+当前当前数据槽对应的时间
++++
+|===
+
+[[Mapping]]
+== Mapping
+
+++++
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|===
+

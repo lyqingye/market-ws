@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+group 'org.market'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    compile project (":market-repository")
+    compile project (":market-publish")
+    compile project (":market-collector")
+    compile project (":market-bridge")
+}
+
+mainClassName = 'com.market.standalone.StandaloneEndpoint'
+
+shadowJar {
+    classifier = 'fat'
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+
+    // 单体服务忽略集群中间件的依赖, 这样就很完美
+    dependencies {
+        exclude(dependency('io.vertx:vertx-hazelcast:3.9.4'))
+        exclude(dependency('com.hazelcast:hazelcast:3.12.2'))
+    }
+}
