@@ -1,0 +1,26 @@
+
+market:
+  manager:
+    http:
+      host: localhost
+      port: 8087
+
+  bridge:
+    tcp:
+      host: 0.0.0.0
+      port: 8888
+
+  collector:
+    clazz: com.market.collector.impl.HuoBiKlineCollector
+    subscribe:
+      - btcusdt
+      - ethusdt
+
+  publish:
+    websocket:
+      host: 0.0.0.0
+      port: 8889
+
+  repository:
+    redis:
+      connectionString: redis://:@localhost:6379/6
