@@ -4,6 +4,7 @@ import com.market.bridge.MarketBridgeVtc;
 import com.market.collector.KlineCollectorVtc;
 import com.market.common.eventbus.impl.EventBusFactory;
 import com.market.common.service.collector.KlineCollectorService;
+import com.market.common.utils.VertxUtil;
 import com.market.publish.MarketPublishVtc;
 import com.market.repository.RepositoryVtc;
 import io.vertx.core.DeploymentOptions;
@@ -20,40 +21,10 @@ public class StandaloneEndpoint {
         EventBusFactory.createLocalEventBus(1 << 16);
         vertx.exceptionHandler(Throwable::printStackTrace);
 
-        // 部署仓库服务 (worker)
-        DeploymentOptions workerOption = new DeploymentOptions().setWorker(true);
-        vertx.deployVerticle(new RepositoryVtc(), workerOption, repoRs -> {
-            vertx.deployVerticle(new MarketPublishVtc("0.0.0.0", 8089), pubRs -> {
-                vertx.deployVerticle(new KlineCollectorVtc(), ctRs -> {
-                    vertx.deployVerticle(new MarketBridgeVtc(), mbRs -> {
-                        if (mbRs.succeeded()) {
-                            KlineCollectorService collectorService = KlineCollectorService.createProxy(vertx);
-                            collectorService.deployCollector("com.market.collector.impl.HuoBiKlineCollector", dpRs -> {
-                                if (dpRs.succeeded()) {
-                                    collectorService.startCollector("com.market.collector.impl.HuoBiKlineCollector", sctRs -> {
-                                        if (sctRs.succeeded()) {
-                                            collectorService.subscribe("com.market.collector.impl.HuoBiKlineCollector", "btcusdt", subRs -> {
-                                                if (subRs.succeeded()) {
-
-                                                } else {
-                                                    subRs.cause().printStackTrace();
-                                                }
-                                            });
-                                        } else {
-                                            sctRs.cause().printStackTrace();
-                                        }
-                                    });
-                                } else {
-                                    dpRs.cause().printStackTrace();
-                                }
-                            });
-                        }else {
-                            mbRs.cause().printStackTrace();
-                        }
-                    });
-
-                });
-            });
-        });
+        VertxUtil.deploy(vertx,new RepositoryVtc(),new DeploymentOptions().setWorker(true))
+                 .compose(ignored -> VertxUtil.deploy(vertx, new MarketPublishVtc("0.0.0.0", 8089)))
+                 .compose(ignored -> VertxUtil.deploy(vertx, new KlineCollectorVtc()))
+                 .compose(ignored -> VertxUtil.deploy(vertx, new MarketBridgeVtc()))
+                 .onFailure(Throwable::printStackTrace);
     }
 }
