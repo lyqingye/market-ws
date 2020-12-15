@@ -5,6 +5,7 @@ import com.market.common.ds.TimeWheel;
 import com.market.common.messages.payload.kline.KlineTickResp;
 import com.market.common.service.config.dto.Mapping;
 import com.market.common.utils.RequestUtils;
+import com.market.common.utils.TimeUtils;
 import com.market.repository.RedisRepo;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -138,7 +139,7 @@ public class KlineRepository {
     private void updateKlineTickAsync(String sub, KlineTickResp tick, Handler<AsyncResult<Void>> handler) {
         // 构造redis命令
         List<Request> batchCmd = new ArrayList<>(2);
-        long time = tick.getTime();
+        long time = TimeUtils.alignWithPeriod(tick.getTime(),Period._1_MIN.getMill());
         Request removeCmd = Request.cmd(Command.ZREMRANGEBYSCORE)
                 .arg(sub)
                 .arg(time).arg(time);

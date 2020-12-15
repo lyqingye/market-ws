@@ -1,6 +1,7 @@
 package com.market.common.utils;
 
 import io.vertx.core.*;
+import io.vertx.core.json.JsonObject;
 
 public final class VertxUtil {
 

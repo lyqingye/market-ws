@@ -183,7 +183,6 @@ public class MarketBridgeVtc extends AbstractVerticle {
                 mpRs.cause().printStackTrace();
             }
         });
-
     }
 
     public static void main(String[] args) {

@@ -82,17 +82,11 @@ public class RepositoryVtc extends AbstractVerticle {
                     configOpenApi = new ConfigServiceImpl(configRepo, vertx, ar -> {
                         if (ar.succeeded()) {
                             if (vertx.isClustered()) {
-                                configServiceConsumer = configServiceBinder
-                                        .register(ConfigService.class, configOpenApi);
-
-                                klineServiceConsumer = klineServiceBinder
-                                        .register(KlineRepositoryService.class, klineOpenApi);
+                                configServiceConsumer = configServiceBinder.register(ConfigService.class, configOpenApi);
+                                klineServiceConsumer = klineServiceBinder.register(KlineRepositoryService.class, klineOpenApi);
                             } else {
-                                configServiceConsumer = configServiceBinder
-                                        .registerLocal(ConfigService.class, configOpenApi);
-
-                                klineServiceConsumer = klineServiceBinder
-                                        .registerLocal(KlineRepositoryService.class, klineOpenApi);
+                                configServiceConsumer = configServiceBinder.registerLocal(ConfigService.class, configOpenApi);
+                                klineServiceConsumer = klineServiceBinder.registerLocal(KlineRepositoryService.class, klineOpenApi);
                             }
                             startPromise.complete();
                             System.out.println("[Market-Repository]: start success!");
