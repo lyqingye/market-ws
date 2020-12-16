@@ -33,6 +33,7 @@ public class KlineTickResp implements TimeWheelSlotData {
     public KlineTickResp(JsonObject json) {
         final KlineTickResp tick = json.mapTo(KlineTickResp.class);
         this.id = tick.id;
+        this.open = tick.open;
         this.amount = tick.amount;
         this.count = tick.count;
         this.close = tick.close;
@@ -52,6 +53,19 @@ public class KlineTickResp implements TimeWheelSlotData {
         return id * 1000;
     }
 
+
+    @Override
+    public KlineTickResp clone () {
+        KlineTickResp tick = new KlineTickResp();
+        tick.id = this.id;
+        tick.amount = this.amount;
+        tick.vol = this.vol;
+        tick.high = this.high;
+        tick.low = this.low;
+        tick.open = this.open;
+        tick.close = this.close;
+        return tick;
+    }
 
     /**
      * 合并两个数据槽的数据

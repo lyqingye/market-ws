@@ -5,6 +5,7 @@ import com.market.bridge.impl.http.input.*;
 import com.market.bridge.impl.http.output.R;
 import com.market.common.def.Topics;
 import com.market.common.eventbus.impl.EventBusFactory;
+import com.market.common.messages.bridge.PriceChangeMessage;
 import com.market.common.messages.bridge.TradeMessage;
 import com.market.common.messages.payload.kline.KlineTradeResp;
 import com.market.common.service.collector.KlineCollectorService;
@@ -371,6 +372,15 @@ public class HttpManagerBridge implements ManagerBridge {
                                                         Json.encode(new KlineTradeResp(tm)), ignored -> {
                                                         });
                                                 buf.response().end(R.success());
+
+                                                PriceChangeMessage pc = new PriceChangeMessage();
+                                                pc.setSymbol(generic);
+                                                pc.setPrice(dto.getPrice());
+                                                pc.setSource("HTTP");
+
+                                                // 推送价格变动数据
+                                                EventBusFactory.eventbus().publish(Topics.MARKET_PRICE_TOPIC.name(), Json.encode(pc), ignored -> {
+                                                });
                                             } else {
                                                 buf.response().end(R.error(store.cause()));
                                             }

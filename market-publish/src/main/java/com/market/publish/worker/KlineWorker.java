@@ -136,7 +136,7 @@ public class KlineWorker extends AbstractVerticle {
                             for (Period period : Period.values()) {
                                 TimeWheel<KlineTickResp> timeWheel = ctx.getOrCreateTimeWheel(symbol, period);
                                 for (KlineTickResp tick : ticks) {
-                                    timeWheel.updateNow(tick);
+                                    timeWheel.updateNow(tick.clone().clone());
                                 }
                             }
                         }

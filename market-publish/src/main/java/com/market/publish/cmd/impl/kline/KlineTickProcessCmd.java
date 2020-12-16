@@ -57,7 +57,7 @@ public class KlineTickProcessCmd implements Cmd {
         for (Period period : Period.values()) {
             TimeWheel<KlineTickResp> wheel = ctx.getOrCreateTimeWheel(symbol, period);
             String key = RequestUtils.toKlineSub(symbol, period);
-            Buffer jsonBuffer = Json.encodeToBuffer(new KlineTradeResp(key, wheel.updateNow(tick)));
+            Buffer jsonBuffer = Json.encodeToBuffer(new KlineTradeResp(key, wheel.updateNow(tick).clone()));
             try {
                 updated.put(key, GZIPUtils.compress(jsonBuffer));
             } catch (IOException e) {
