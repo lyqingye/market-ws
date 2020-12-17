@@ -44,9 +44,8 @@ public class ConfigRepository {
      */
     public Future<Void> putC2G(String custom, String generic) {
         Promise<Void> promise = Promise.promise();
-        Future<Void> future = promise.future();
-        redisRepo.hSet(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(), custom, generic, future);
-        return future;
+        redisRepo.hSet(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(), custom, generic, promise);
+        return promise.future();
     }
 
     /**
@@ -82,9 +81,8 @@ public class ConfigRepository {
      */
     public Future<List<Mapping>> c2gMappings () {
         Promise<Map<String,String>> promise = Promise.promise();
-        Future<Map<String, String>> future = promise.future();
-        redisRepo.hGetAll(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(),future);
-        return future.compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
+        redisRepo.hGetAll(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(),promise);
+        return promise.future().compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
     }
 
     /**
@@ -109,9 +107,8 @@ public class ConfigRepository {
      */
     public Future<List<Mapping>> g2cMappings() {
         Promise<Map<String,String>> promise = Promise.promise();
-        Future<Map<String, String>> future = promise.future();
-        redisRepo.hGetAll(CacheKey.SYMBOL_GENERIC_TO_CUSTOM.name(),future);
-        return future.compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
+        redisRepo.hGetAll(CacheKey.SYMBOL_GENERIC_TO_CUSTOM.name(),promise);
+        return promise.future().compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
     }
 
     /**
@@ -151,9 +148,8 @@ public class ConfigRepository {
      */
     public Future<List<Mapping>> listMarketPrice () {
         Promise<Map<String,String>> promise = Promise.promise();
-        Future<Map<String, String>> future = promise.future();
-        redisRepo.hGetAll(CacheKey.MARKET_PRICE.name(),future);
-        return future.compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
+        redisRepo.hGetAll(CacheKey.MARKET_PRICE.name(),promise);
+        return promise.future().compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
     }
 
     /**
