@@ -19,7 +19,7 @@ public class TradeDetailSubCmd implements Cmd {
 
     @Override
     public void execute(JsonObject json, PublishContext ctx, WsSessionWrapper curSession) {
-        String sub = json.getString("ch");
+        String sub = json.getString("sub");
         Buffer buffer = ctx.getLatestTradeBufferCache().get(sub);
         curSession.subTradeDetail(sub);
         if (buffer != null) {
