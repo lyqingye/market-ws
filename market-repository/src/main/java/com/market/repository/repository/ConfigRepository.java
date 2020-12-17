@@ -79,7 +79,7 @@ public class ConfigRepository {
      *
      * note:
      * 可能你也注意到价格的数据类型是price, 对的没错用的就是 double, 因为这个东西又不拿来计算
-     * 所以没必要用 Bigdecimal
+     * 所以没必要用 BigDecimal
      *
      * @param symbol 交易对
      * @param price 价格
