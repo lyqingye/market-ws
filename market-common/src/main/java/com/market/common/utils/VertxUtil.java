@@ -2,6 +2,7 @@ package com.market.common.utils;
 
 import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.shareddata.AsyncMap;
 
 public final class VertxUtil {
 
@@ -30,5 +31,20 @@ public final class VertxUtil {
         Future<String> future = Promise.<String>promise().future();
         vertx.deployVerticle(verticle,options,future);
         return future;
+    }
+
+    /**
+     * 获取异步共享map
+     *
+     * @param vertx vertx
+     * @param name name of map
+     * @param <K> key
+     * @param <V> value
+     * @return future
+     */
+    public static <K,V> Future<AsyncMap<K, V>> getAsyncMap (Vertx vertx,String name) {
+        Promise<AsyncMap<K, V>> promise = Promise.promise();
+        vertx.sharedData().getAsyncMap(name,promise);
+        return promise.future();
     }
 }
