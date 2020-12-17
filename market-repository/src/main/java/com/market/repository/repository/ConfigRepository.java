@@ -6,10 +6,12 @@ import com.market.repository.RedisRepo;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ConfigRepository {
@@ -31,6 +33,20 @@ public class ConfigRepository {
      */
     public void putC2G(String custom, String generic, Handler<AsyncResult<Void>> handler) {
         redisRepo.hSet(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(), custom, generic, handler);
+    }
+
+    /**
+     * 添加/更新交易对映射（custom:generic）
+     *
+     * @param custom 自定义交易对
+     * @param generic 通用交易对
+     * @return future
+     */
+    public Future<Void> putC2G(String custom, String generic) {
+        Promise<Void> promise = Promise.promise();
+        Future<Void> future = promise.future();
+        redisRepo.hSet(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(), custom, generic, future);
+        return future;
     }
 
     /**
@@ -60,6 +76,18 @@ public class ConfigRepository {
     }
 
     /**
+     * custom:generic 交易对映射集合
+     *
+     * @return  future
+     */
+    public Future<List<Mapping>> c2gMappings () {
+        Promise<Map<String,String>> promise = Promise.promise();
+        Future<Map<String, String>> future = promise.future();
+        redisRepo.hGetAll(CacheKey.SYMBOL_CUSTOM_TO_GENERIC.name(),future);
+        return future.compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
+    }
+
+    /**
      * generic:custom 交易对映射集合
      *
      * @param handler 结果处理器
@@ -72,6 +100,18 @@ public class ConfigRepository {
                 handler.handle(Future.failedFuture(ar.cause()));
             }
         });
+    }
+
+    /**
+     * generic:custom 交易对映射集合
+     *
+     * @return  future
+     */
+    public Future<List<Mapping>> g2cMappings() {
+        Promise<Map<String,String>> promise = Promise.promise();
+        Future<Map<String, String>> future = promise.future();
+        redisRepo.hGetAll(CacheKey.SYMBOL_GENERIC_TO_CUSTOM.name(),future);
+        return future.compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
     }
 
     /**
@@ -102,6 +142,18 @@ public class ConfigRepository {
                 handler.handle(Future.failedFuture(ar.cause()));
             }
         });
+    }
+
+    /**
+     * 获取所有交易对的价格
+     *
+     * @return 结果future
+     */
+    public Future<List<Mapping>> listMarketPrice () {
+        Promise<Map<String,String>> promise = Promise.promise();
+        Future<Map<String, String>> future = promise.future();
+        redisRepo.hGetAll(CacheKey.MARKET_PRICE.name(),future);
+        return future.compose(rs -> Future.succeededFuture(Mapping.toMappings(rs)));
     }
 
     /**
