@@ -20,9 +20,14 @@ import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 public class RepositoryVtc extends AbstractVerticle {
 
   /**
-   * redis
+   * redis仓库
    */
   private RedisRepo redisRepo;
+
+  /**
+   * 配置仓库
+   */
+  private ConfigRepository configRepo;
 
   /**
    * k线仓库开放api
@@ -48,63 +53,60 @@ public class RepositoryVtc extends AbstractVerticle {
   public void start(Promise<Void> startPromise) throws Exception {
     EventBus eb = EventBusFactory.eventbus();
     // 创建redis仓库
-    RedisRepo
-        .create(vertx, "redis://:@localhost:6379/6")
-        .compose(repo -> {
-          redisRepo = repo;
-          // 创建配置仓库
-          ConfigRepository configRepo = new ConfigRepository(redisRepo);
-          // K线交易数据仓库
-          return KlineRepository
-              .create(redisRepo, configRepo)
-              .compose(klineRepository -> {
-                return eb
-                    // 监听交易数据
-                    .subscribe(Topics.KLINE_TICK_TOPIC.name(), klineRepository::forUpdateKline)
-                    .compose(ignored -> {
-                      System.out.println("[KlineRepository]: subscribe trade result topic success!");
-                      return Future.succeededFuture();
-                    })
+    RedisRepo.create(vertx, "redis://:@localhost:6379/6")
+             .compose(repo -> {
+               redisRepo = repo;
+               // 创建配置仓库
+               configRepo = new ConfigRepository(redisRepo);
+               // K线交易数据仓库
+               return KlineRepository.create(redisRepo, configRepo);
+             })
+             .compose(klineRepository -> {
+               return eb
+                   // 监听交易数据
+                   .subscribe(Topics.KLINE_TICK_TOPIC.name(), klineRepository::forUpdateKline)
+                   .compose(ignored -> {
+                     System.out.println("[KlineRepository]: subscribe trade result topic success!");
+                     return Future.succeededFuture();
+                   })
 
-                    // 监听价格数据
-                    .compose(ignored -> eb.subscribe(Topics.MARKET_PRICE_TOPIC.name(), configRepo::forUpdatePrice))
-                    .compose(ignored -> {
-                      System.out.println("[KlineRepository]: subscribe price topic success!");
-                      return Future.succeededFuture();
-                    })
+                   // 监听价格数据
+                   .compose(ignored -> eb.subscribe(Topics.MARKET_PRICE_TOPIC.name(), configRepo::forUpdatePrice))
+                   .compose(ignored -> {
+                     System.out.println("[KlineRepository]: subscribe price topic success!");
+                     return Future.succeededFuture();
+                   })
 
-                    // 部署K线仓库服务
-                    .compose(ignored -> {
-                      klineOpenApi = new KlineServiceImpl(klineRepository);
-                      return Future.succeededFuture();
-                    })
+                   // 部署K线仓库服务
+                   .compose(ignored -> {
+                     klineOpenApi = new KlineServiceImpl(klineRepository);
+                     return Future.succeededFuture();
+                   })
 
-                    // 部署配置服务
-                    .compose(ignored -> ConfigServiceImpl.create(vertx, configRepo))
-                    .onSuccess(configService -> {
+                   // 部署配置服务
+                   .compose(ignored -> ConfigServiceImpl.create(vertx, configRepo))
+                   .onSuccess(configService -> {
 
-                      //
-                      // 启动服务监听
-                      //
-                      configOpenApi = configService;
-                      klineServiceBinder = new ServiceBinder(vertx).setAddress(ServiceAddress.KLINE_REPOSITORY.name());
-                      configServiceBinder = new ServiceBinder(vertx).setAddress(ServiceAddress.CONFIG.name());
-                      if (vertx.isClustered()) {
-                        configServiceConsumer = configServiceBinder.register(ConfigService.class, configOpenApi);
-                        klineServiceConsumer = klineServiceBinder.register(KlineRepositoryService.class, klineOpenApi);
-                      } else {
-                        configServiceConsumer = configServiceBinder.registerLocal(ConfigService.class, configOpenApi);
-                        klineServiceConsumer = klineServiceBinder.registerLocal(KlineRepositoryService.class, klineOpenApi);
-                      }
-                    });
-              });
-
-        })
-        .onSuccess(success -> {
-          startPromise.complete();
-          System.out.println("[Market-Repository]: start success!");
-        })
-        .onFailure(Throwable::printStackTrace);
+                     //
+                     // 启动服务监听
+                     //
+                     configOpenApi = configService;
+                     klineServiceBinder = new ServiceBinder(vertx).setAddress(ServiceAddress.KLINE_REPOSITORY.name());
+                     configServiceBinder = new ServiceBinder(vertx).setAddress(ServiceAddress.CONFIG.name());
+                     if (vertx.isClustered()) {
+                       configServiceConsumer = configServiceBinder.register(ConfigService.class, configOpenApi);
+                       klineServiceConsumer = klineServiceBinder.register(KlineRepositoryService.class, klineOpenApi);
+                     } else {
+                       configServiceConsumer = configServiceBinder.registerLocal(ConfigService.class, configOpenApi);
+                       klineServiceConsumer = klineServiceBinder.registerLocal(KlineRepositoryService.class, klineOpenApi);
+                     }
+                   });
+             })
+             .onSuccess(success -> {
+               startPromise.complete();
+               System.out.println("[Market-Repository]: start success!");
+             })
+             .onFailure(Throwable::printStackTrace);
   }
 
   @Override
