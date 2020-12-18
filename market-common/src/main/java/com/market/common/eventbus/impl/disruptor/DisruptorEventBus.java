@@ -91,7 +91,7 @@ public class DisruptorEventBus implements EventBus {
      * @return promise
      */
     @Override
-    public Promise<String> subscribe(String topic, Consumer<Object> consumer) {
+    public Future<String> subscribe(String topic, Consumer<Object> consumer) {
         Promise<String> promise = Promise.promise();
         ConsumerWrapper consumerWrapper = new ConsumerWrapper();
         consumerWrapper.setRegistryId(UUID.randomUUID().toString());
@@ -99,7 +99,7 @@ public class DisruptorEventBus implements EventBus {
         topicConsumerMap.computeIfAbsent(topic, k -> new Vector<>())
                 .add(consumerWrapper);
         promise.complete(consumerWrapper.getRegistryId());
-        return promise;
+        return promise.future();
     }
 
     /**
