@@ -29,11 +29,6 @@ public class KlineWorker extends AbstractVerticle {
     private KlineRepositoryService klineRepo;
 
     /**
-     * 消息推送配置服务
-     */
-    private ConfigService configService;
-
-    /**
      * 需要初始化数据的交易对数量
      */
     private int totalSymbolNeedToInit = 0;
@@ -42,7 +37,7 @@ public class KlineWorker extends AbstractVerticle {
      * <p>
      * 后面可能改成其它并行方式(rxJava? maybe), 所以用了cas
      */
-    private AtomicInteger numOfInitSuccessSymbol = new AtomicInteger(0);
+    private final AtomicInteger numOfInitSuccessSymbol = new AtomicInteger(0);
 
     public KlineWorker(PublishContext ctx) {
         this.ctx = Objects.requireNonNull(ctx);
@@ -50,7 +45,7 @@ public class KlineWorker extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> sp) throws Exception {
-        configService = ConfigService.createProxy(vertx);
+        ConfigService configService = ConfigService.createProxy(vertx);
         klineRepo = KlineRepositoryService.createProxy(vertx);
         // 从仓库获取历史K线数据
         configService.c2gMappings(ar -> {
@@ -96,7 +91,6 @@ public class KlineWorker extends AbstractVerticle {
      * @param symbol  交易对
      * @param handler 结果处理器
      */
-    @SuppressWarnings("unchecked")
     private void initKlineFromRepo(String symbol, Handler<AsyncResult<Void>> handler) {
         // 批次大小
         final int batchSize = 10;
