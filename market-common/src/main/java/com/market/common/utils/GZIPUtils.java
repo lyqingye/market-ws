@@ -83,7 +83,6 @@ public class GZIPUtils {
      * @param vertx vertx
      * @param data 需要压缩的数据
      * @param handler 结果处理器
-     * @return 压缩后的数据
      */
     public static void compressAsync(Vertx vertx,Buffer data, Handler<AsyncResult<Buffer>> handler) {
         vertx.executeBlocking(promise -> {
