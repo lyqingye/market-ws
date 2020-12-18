@@ -58,42 +58,35 @@ public class RepositoryVtc extends AbstractVerticle {
                     KlineRepository klineRepository = initAr.result();
 
                     // 监听交易数据
-                    EventBusFactory.eventbus().subscribe(Topics.KLINE_TICK_TOPIC.name(), klineRepository::forUpdateKline, ar -> {
-                        if (ar.succeeded()) {
-                            System.out.println("[KlineRepository]: subscribe trade result topic success!");
-                        } else {
-                            ar.cause().printStackTrace();
-                        }
-                    });
-
-                    // 监听价格变动数据
-                    EventBusFactory.eventbus().subscribe(Topics.MARKET_PRICE_TOPIC.name(), configRepo::forUpdatePrice, ar -> {
-                        if (ar.succeeded()) {
-                            System.out.println("[KlineRepository]: subscribe price topic success!");
-                        } else {
-                            ar.cause().printStackTrace();
-                        }
-                    });
-
-                    // 部署K线仓库服务
-                    klineOpenApi = new KlineServiceImpl(klineRepository);
-
-                    // 部署配置仓库服务
-                    configOpenApi = new ConfigServiceImpl(configRepo, vertx, ar -> {
-                        if (ar.succeeded()) {
-                            if (vertx.isClustered()) {
-                                configServiceConsumer = configServiceBinder.register(ConfigService.class, configOpenApi);
-                                klineServiceConsumer = klineServiceBinder.register(KlineRepositoryService.class, klineOpenApi);
-                            } else {
-                                configServiceConsumer = configServiceBinder.registerLocal(ConfigService.class, configOpenApi);
-                                klineServiceConsumer = klineServiceBinder.registerLocal(KlineRepositoryService.class, klineOpenApi);
-                            }
-                            startPromise.complete();
-                            System.out.println("[Market-Repository]: start success!");
-                        } else {
-                            ar.cause().printStackTrace();
-                        }
-                    });
+                    EventBusFactory.eventbus()
+                                   .subscribe(Topics.KLINE_TICK_TOPIC.name(), klineRepository::forUpdateKline)
+                                   .compose(ignored -> {
+                                       System.out.println("[KlineRepository]: subscribe trade result topic success!");
+                                       return Future.succeededFuture();
+                                   })
+                                   .compose(ignored -> EventBusFactory.eventbus().subscribe(Topics.MARKET_PRICE_TOPIC.name(), configRepo::forUpdatePrice))
+                                   .compose(ignored -> {
+                                       System.out.println("[KlineRepository]: subscribe price topic success!");
+                                       return Future.succeededFuture();
+                                   })
+                                   .compose(ignored -> {
+                                       // 部署K线仓库服务
+                                       klineOpenApi = new KlineServiceImpl(klineRepository);
+                                       return Future.succeededFuture();
+                                   })
+                                   .compose(ignored -> ConfigServiceImpl.create(vertx, configRepo))
+                                   .onSuccess(rs -> {
+                                       configOpenApi = rs;
+                                       if (vertx.isClustered()) {
+                                           configServiceConsumer = configServiceBinder.register(ConfigService.class, configOpenApi);
+                                           klineServiceConsumer = klineServiceBinder.register(KlineRepositoryService.class, klineOpenApi);
+                                       } else {
+                                           configServiceConsumer = configServiceBinder.registerLocal(ConfigService.class, configOpenApi);
+                                           klineServiceConsumer = klineServiceBinder.registerLocal(KlineRepositoryService.class, klineOpenApi);
+                                       }
+                                       startPromise.complete();
+                                       System.out.println("[Market-Repository]: start success!");
+                                   }).onFailure(Throwable::printStackTrace);
                 } else {
                     initAr.cause().printStackTrace();
                 }
@@ -123,7 +116,7 @@ public class RepositoryVtc extends AbstractVerticle {
             if (ar.succeeded()) {
                 EventBusFactory.createDistributeEventBus(mgr.getHazelcastInstance());
                 ar.result().deployVerticle(new RepositoryVtc(), new DeploymentOptions().setWorker(true));
-            }else {
+            } else {
                 ar.cause().printStackTrace();
             }
         });
