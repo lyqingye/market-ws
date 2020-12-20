@@ -47,4 +47,17 @@ public final class VertxUtil {
         vertx.sharedData().getAsyncMap(name,promise);
         return promise.future();
     }
+
+    /**
+     * 异步执行并且忽略返回值
+     *
+     * @param vertx vertx
+     * @param cmd 需要执行的内容
+     */
+    public static void asyncFastCallIgnoreRs(Vertx vertx, Runnable cmd) {
+        vertx.executeBlocking(promise -> {
+            cmd.run();
+            promise.complete();
+        }, ignored -> {});
+    }
 }
