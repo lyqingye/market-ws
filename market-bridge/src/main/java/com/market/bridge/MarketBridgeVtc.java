@@ -14,6 +14,7 @@ import com.market.common.messages.payload.detail.TradeDetailResp;
 import com.market.common.messages.payload.kline.KlineTradeResp;
 import com.market.common.service.config.ConfigService;
 import com.market.common.service.config.dto.Mapping;
+import com.market.common.utils.VertxUtil;
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.*;
 import io.vertx.core.json.Json;
@@ -89,13 +90,12 @@ public class MarketBridgeVtc extends AbstractVerticle {
      */
     @SuppressWarnings("unchecked")
     private void processDepth(Message<?> msg) {
-        vertx.executeBlocking(promise -> {
+        vertx.executeBlocking((Handler<Promise<Void>>) promise -> {
             // 盘口数据
             List<DepthTickResp> data = (List<DepthTickResp>) msg.getData();
             EventBusFactory.eventbus()
-                    .publish(Topics.DEPTH_CHART_TOPIC.name(),
-                            Json.encode(data), ignored -> {
-                            });
+                           .publish(Topics.DEPTH_CHART_TOPIC.name(),
+                                    Json.encode(data), promise);
         }, ignored -> {
         });
     }
@@ -108,25 +108,17 @@ public class MarketBridgeVtc extends AbstractVerticle {
      */
     private void processTradeResult(String source, Message<?> msg) {
         EventBus eb = EventBusFactory.eventbus();
-        vertx.executeBlocking(promise -> {
+        VertxUtil.asyncFastCallIgnoreRs(vertx, () -> {
             // 交易数据
             TradeMessage data = (TradeMessage) msg.getData();
             // 推送交易细节
-            eb.publish(Topics.TRADE_DETAIL_TOPIC.name(),
-                    Json.encode(new TradeDetailResp(data)), ignored -> {
-                    });
+            eb.publishIgnoreRs(Topics.TRADE_DETAIL_TOPIC.name(),Json.encode(new TradeDetailResp(data)));
 
             // 推送成交数据
-            eb.publish(Topics.KLINE_TICK_TOPIC.name(),
-                    Json.encode(new KlineTradeResp(data)), ignored -> {
-                    });
+            eb.publishIgnoreRs(Topics.KLINE_TICK_TOPIC.name(),Json.encode(new KlineTradeResp(data)));
 
             // 推送价格变动数据 (考虑分布式)
-            eb.publish(Topics.MARKET_PRICE_TOPIC.name(),
-                    Json.encode(new PriceChangeMessage(data, source)), ignored -> {
-                    });
-
-        }, ignored -> {
+            eb.publishIgnoreRs(Topics.MARKET_PRICE_TOPIC.name(),Json.encode(new PriceChangeMessage(data, source)));
         });
     }
 
