@@ -37,7 +37,7 @@ public class RedisRepo {
     RedisRepo self = new RedisRepo();
     NetClientOptions netOptions = new NetClientOptions()
         .setConnectTimeout(5000)
-        .setReconnectAttempts(Integer.MAX_VALUE)
+        .setReconnectAttempts(2)
         .setReconnectInterval(1000);
     RedisOptions redisOptions = new RedisOptions()
         .setConnectionString(connectionString)

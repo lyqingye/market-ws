@@ -64,6 +64,7 @@ public class KlineTickResp implements TimeWheelSlotData {
         tick.low = this.low;
         tick.open = this.open;
         tick.close = this.close;
+        tick.count = this.count;
         return tick;
     }
 
