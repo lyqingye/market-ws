@@ -130,6 +130,9 @@ public class KlineWorker extends AbstractVerticle {
                         timeWheel.updateNow(tick.clone());
                       }
                     }
+                    // 清理，因为变量是在循环里面创建的，无需通知 gc
+                    ticks.clear();
+
                     // 所有批次数据已经就绪
                     if (batchCount.addAndGet(1) >= finalNumOfBatch) {
                       // 调度事件轮
