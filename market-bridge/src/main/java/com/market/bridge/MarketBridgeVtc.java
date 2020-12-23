@@ -2,7 +2,7 @@ package com.market.bridge;
 
 import com.hazelcast.config.Config;
 import com.market.bridge.impl.TcpMarketBridge;
-import com.market.bridge.impl.http.HttpManagerBridge;
+import com.market.bridge.impl.http.HttpOpenApi;
 import com.market.common.def.Topics;
 import com.market.common.eventbus.EventBus;
 import com.market.common.eventbus.impl.EventBusFactory;
@@ -18,6 +18,7 @@ import com.market.common.utils.VertxUtil;
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.*;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
 import java.util.List;
@@ -32,6 +33,11 @@ public class MarketBridgeVtc extends AbstractVerticle {
     private MarketBridge bridge;
 
     /**
+     * http open api
+     */
+    private HttpOpenApi httpOpenApi;
+
+    /**
      * 配置服务
      */
     private ConfigService configService;
@@ -40,7 +46,39 @@ public class MarketBridgeVtc extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         // 配置服务
         configService = ConfigService.createProxy(vertx);
-        this.bridge = new TcpMarketBridge() {
+        this.bridge = this.createBridge();
+        this.bridge.start(vertx, config(), ar -> {
+            if (ar.succeeded()) {
+                System.out.println("[MarketBridge-TcpBridge]: start success!");
+                // 启动 Http API
+                httpOpenApi = new HttpOpenApi();
+                httpOpenApi.start(vertx, config(), api -> {
+                    if (api.succeeded()) {
+                        System.out.println("[MarketBridge-OpenApi]: start success!");
+                        // 监听并处理价格变动事件
+                        this.listenAndProcess()
+                            .onSuccess(ignored -> {
+                                System.out.println("[MarketBridge]: start success!");
+                                startPromise.complete();
+                            })
+                            .onFailure(startPromise::fail);
+                    } else {
+                        startPromise.fail(api.cause());
+                    }
+                });
+            } else {
+                startPromise.fail(ar.cause());
+            }
+        });
+    }
+
+    /**
+     * 创建桥接器
+     *
+     * @return 桥接器
+     */
+    private MarketBridge createBridge() {
+        return new TcpMarketBridge() {
             @Override
             public void process(String source, AsyncResult<Message<?>> client) {
                 if (client.succeeded()) {
@@ -62,25 +100,6 @@ public class MarketBridgeVtc extends AbstractVerticle {
                 }
             }
         };
-        this.bridge.start(vertx, null, ar -> {
-            if (ar.succeeded()) {
-                System.out.println("[MarketBridge]: start success!");
-
-                // 启动 Http API
-                new HttpManagerBridge().start(vertx, null, manager -> {
-                    if (manager.succeeded()) {
-                        System.out.println("[MarketManagerHttpAPI]: start success!");
-                        // 监听并处理价格变动事件
-                        this.listenAndProcess();
-                        startPromise.complete();
-                    } else {
-                        manager.cause().printStackTrace();
-                    }
-                });
-            } else {
-                ar.cause().printStackTrace();
-            }
-        });
     }
 
     /**
@@ -131,7 +150,8 @@ public class MarketBridgeVtc extends AbstractVerticle {
     /**
      * 监听价格变动事件, 然后广播
      */
-    private void listenAndProcess() {
+    private Future<Void> listenAndProcess() {
+        Promise<Void> promise = Promise.promise();
         // 预先缓存交易对映射
         configService.g2cMappings(mpRs -> {
             if (mpRs.succeeded()) {
@@ -167,14 +187,16 @@ public class MarketBridgeVtc extends AbstractVerticle {
                         }, ar -> {
                             if (ar.succeeded()) {
                                 System.out.println("[MarketBridge]: subscribe market price topic success!");
+                                promise.complete();
                             } else {
-                                ar.cause().printStackTrace();
+                                promise.fail(ar.cause());
                             }
                         });
             } else {
                 mpRs.cause().printStackTrace();
             }
         });
+        return promise.future();
     }
 
     public static void main(String[] args) {

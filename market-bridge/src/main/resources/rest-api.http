@@ -1,15 +1,15 @@
 ### 获取自定义交易对转换为通用交易对的映射
-GET http://localhost:8089/market/symbol/c2g/mappings
+GET http://localhost:8087/market/symbol/c2g/mappings
 Accept: application/json
 
 ### 更新自定义交易对转换为通用交易对的映射
-PUT http://localhost:8089/market/symbol/c2g/mapping
+PUT http://localhost:8087/market/symbol/c2g/mapping
 Accept: application/json
 Content-Type: application/json
 
 {
-  "source": "AAA-USDT",
-  "target": "aaausdt"
+  "source": "VTV-USDT",
+  "target": "vtvusdt"
 }
 
 ### 获取最新市场价 (交易对自动映射)

@@ -1,27 +1,49 @@
-
 market:
-  manager:
-    http:
-      host: localhost
-      port: 8087
 
   bridge:
-    tcp:
-      host: 0.0.0.0
-      port: 8888
+    engine:
+      tcp:
+        host: 0.0.0.0
+        port: 8888
+        debug: false
+    api:
+      http:
+        host: localhost
+        port: 8087
+        debug: false
 
   collector:
     name: com.market.collector.impl.HuoBiKlineCollector
     subscribe:
-      - btcusdt
-      - ethusdt
+      - BTC-USDT
+      - ETH-USDT
+    debug: false
 
   publish:
-    websocket:
+    websockets:
       host: 0.0.0.0
       port: 8889
-    compress: true
+      debug: false
+
+    # 开启数据压缩
+    compress:
+      # 压缩心跳
+      ping: false
+      kline:
+        # 压缩k线tick
+        tick: true
+        # 压缩k线历史数据
+        history: true
+      market:
+        # 压缩市场概要
+        detail: true
+        # 压缩市场深度
+        depth: true
+      trade:
+        # 压缩交易详情
+        detail: true
 
   repository:
     redis:
       connectionString: redis://:@localhost:6379/6
+    debug: false;

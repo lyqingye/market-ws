@@ -1,6 +1,6 @@
 package com.market.bridge.impl.http;
 
-import com.market.bridge.ManagerBridge;
+import com.market.bridge.OpenApi;
 import com.market.bridge.impl.http.input.*;
 import com.market.bridge.impl.http.output.R;
 import com.market.common.def.Topics;
@@ -11,14 +11,18 @@ import com.market.common.messages.payload.kline.KlineTradeResp;
 import com.market.common.service.collector.KlineCollectorService;
 import com.market.common.service.config.ConfigService;
 import com.market.common.service.config.dto.Mapping;
+import com.market.common.utils.VertxUtil;
 import io.netty.util.internal.StringUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class HttpManagerBridge implements ManagerBridge {
+public class HttpOpenApi implements OpenApi {
     /**
      * vertx 实例
      */
@@ -55,7 +59,7 @@ public class HttpManagerBridge implements ManagerBridge {
      */
     private Router router;
 
-    public HttpManagerBridge() {
+    public HttpOpenApi() {
     }
 
     /**
@@ -66,16 +70,23 @@ public class HttpManagerBridge implements ManagerBridge {
      * @param handler    结果处理
      */
     @Override
-    public void start(Vertx vertx, String jsonConfig, Handler<AsyncResult<ManagerBridge>> handler) {
+    public void start(Vertx vertx, JsonObject jsonConfig, Handler<AsyncResult<OpenApi>> handler) {
         this.vertx = Objects.requireNonNull(vertx);
 
-        // 默认配置
-        HttpConfig config = new HttpConfig();
+        String host = "localhost";
+        int port = 8087;
+        boolean debug = false;
 
         // 判断是否提供了配置
         if (jsonConfig != null) {
-            config = Json.decodeValue(jsonConfig, HttpConfig.class);
+            host = VertxUtil.jsonGetValue(jsonConfig, "market.bridge.api.http.host",String.class, host);
+            port = VertxUtil.jsonGetValue(jsonConfig,"market.bridge.api.http.port",Integer.class,port);
+            debug = VertxUtil.jsonGetValue(jsonConfig,"market.bridge.api.http.debug",Boolean.class,false);
         }
+
+        System.out.println("[MarketBridge-OpenApi]: listen host: " + host);
+        System.out.println("[MarketBridge-OpenApi]: listen port: " + port);
+        System.out.println("[MarketBridge-OpenApi]: debug: " + debug);
 
         // 初始化依赖的服务项
         this.configService = ConfigService.createProxy(vertx);
@@ -87,9 +98,9 @@ public class HttpManagerBridge implements ManagerBridge {
         // 配置路由注册
         this.registerConfigApi(router);
         // 创建并且启动服务器
-        vertx.createHttpServer()
+        vertx.createHttpServer(new HttpServerOptions().setLogActivity(debug))
                 .requestHandler(router)
-                .listen(config.port, config.host, ar -> {
+                .listen(port, host, ar -> {
                     if (ar.succeeded()) {
                         this.httpServer = ar.result();
                         handler.handle(Future.succeededFuture());
@@ -395,13 +406,5 @@ public class HttpManagerBridge implements ManagerBridge {
                         }
                     });
                 });
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    static class HttpConfig {
-        private String host = "localhost";
-        private int port = 8087;
     }
 }

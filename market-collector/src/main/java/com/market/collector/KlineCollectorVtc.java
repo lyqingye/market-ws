@@ -5,13 +5,15 @@ import com.market.common.def.ServiceAddress;
 import com.market.common.eventbus.impl.EventBusFactory;
 import com.market.common.service.collector.KlineCollectorService;
 import com.market.common.service.collector.dto.CollectorStatusDto;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
+import com.market.common.utils.VertxUtil;
+import io.vertx.core.*;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
 import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author yjt
@@ -32,13 +34,13 @@ public class KlineCollectorVtc extends AbstractVerticle {
     /**
      * 开放服务
      */
-    private KlineCollectorService openService;
+    private KlineCollectorServiceImpl openService;
 
     public KlineCollectorVtc() {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start(Promise<Void> promise) throws Exception {
         // 暴露服务
         serviceBinder = new ServiceBinder(vertx).setAddress(ServiceAddress.COLLECTOR.name());
         openService = new KlineCollectorServiceImpl(vertx, EventBusFactory.eventbus());
@@ -50,8 +52,23 @@ public class KlineCollectorVtc extends AbstractVerticle {
             serviceConsumer = serviceBinder
                     .registerLocal(KlineCollectorService.class, openService);
         }
-
-        System.out.println("[Market-KlineCollector]: start success!");
+        JsonObject config = config();
+        String collectorName = VertxUtil.jsonGetValue(config, "market.collector.name", String.class);
+        List<String> subscribe = VertxUtil.jsonListValue(config, "market.collector.subscribe", String.class);
+        if (collectorName != null && !collectorName.isBlank()) {
+            Future<Boolean> future = openService.deployCollector(collectorName)
+                                                 .compose(ignored -> openService.startCollector(collectorName));
+            for (String subscribeSymbol : subscribe) {
+                future = future.compose(ignored -> openService.subscribe(collectorName,subscribeSymbol));
+            }
+            future.onFailure(promise::fail);
+            future.onSuccess(ignored -> {
+                System.out.println("[Market-KlineCollector]: start success!");
+                System.out.println("[Market-KlineCollector]: deploy collector: " + collectorName);
+                System.out.println("[Market-KlineCollector]: subscribe: " + subscribe);
+                promise.complete();
+            });
+        }
     }
 
     @Override

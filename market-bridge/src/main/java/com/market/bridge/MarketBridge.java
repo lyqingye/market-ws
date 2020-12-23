@@ -5,6 +5,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 
 public interface MarketBridge {
 
@@ -15,7 +16,7 @@ public interface MarketBridge {
      * @param config  配置
      * @param handler 结果处理
      */
-    void start(Vertx vertx, String config, Handler<AsyncResult<MarketBridge>> handler);
+    void start(Vertx vertx, JsonObject config, Handler<AsyncResult<MarketBridge>> handler);
 
     /**
      * 停止桥接器

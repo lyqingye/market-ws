@@ -7,10 +7,7 @@ import com.market.common.messages.bridge.PriceChangeMessage;
 import com.market.common.service.collector.KlineCollectorService;
 import com.market.common.service.collector.dto.CollectorStatusDto;
 import com.market.common.utils.RequestUtils;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -70,14 +67,14 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
      * <p>
      * 收集器名称 -> 收集器对象
      */
-    private Map<String, Collector> collectorMap = new ConcurrentHashMap<>(1);
+    private final Map<String, Collector> collectorMap = new ConcurrentHashMap<>(1);
 
     /**
      * 已经部署的收集器 map
      * <p>
      * 收集器名称 -> 收集器对象
      */
-    private Map<String, Collector> deployMap = new ConcurrentHashMap<>(1);
+    private final Map<String, Collector> deployMap = new ConcurrentHashMap<>(1);
 
 
     /**
@@ -264,5 +261,47 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
         } else {
             handler.handle(Future.failedFuture("unSubscribe fail"));
         }
+    }
+
+
+    //
+    // future api
+    //
+
+    /**
+     * 部署一个收集器
+     *
+     * @param collectorName 收集器名称
+     * @return future
+     */
+    public Future<Boolean> deployCollector(String collectorName) {
+        Promise<Boolean> promise = Promise.promise();
+        deployCollector(collectorName,promise);
+        return promise.future();
+    }
+
+    /**
+     * 启动收集器
+     *
+     * @param collectorName 收集器名称
+     * @return future
+     */
+    public Future<Boolean> startCollector(String collectorName) {
+        Promise<Boolean> promise = Promise.promise();
+        startCollector(collectorName,promise);
+        return promise.future();
+    }
+
+    /**
+     * 订阅交易对
+     *
+     * @param collectorName 收集器名称
+     * @param symbol        交易对
+     * @return future
+     */
+    public Future<Boolean> subscribe(String collectorName, String symbol) {
+        Promise<Boolean> promise = Promise.promise();
+        subscribe(collectorName,symbol,promise);
+        return promise.future();
     }
 }
