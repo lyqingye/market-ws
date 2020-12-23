@@ -50,9 +50,9 @@ public class TradeDetailProcessCmd implements Cmd {
         // 只保留30条历史数据
         List<TradeDetailTickData> finalCache = cache;
         if (cache.size() > 30) {
-            finalCache = cache.subList(cache.size() - 30, cache.size() - 1);
+            finalCache = new ArrayList<>(cache.subList(cache.size() - 30, cache.size() - 1));
+            ctx.getLatestTradeCache().put(detail.getCh(),finalCache);
         }
-        ctx.getLatestTradeCache().put(detail.getCh(), finalCache);
 
         // 重新构建 detail, 然后转换为buffer, 目的是用户订阅的时候无需再转换为json
         // 即可发送全量历史数据
