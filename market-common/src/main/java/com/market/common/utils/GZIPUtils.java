@@ -1,9 +1,7 @@
 package com.market.common.utils;
 
 import com.hazelcast.cp.internal.operation.integration.AppendRequestOp;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 
 import java.io.*;
@@ -16,6 +14,36 @@ import java.util.zip.GZIPOutputStream;
  * @author ex
  */
 public class GZIPUtils {
+
+    /**
+     * 异步解压
+     *
+     * @param vertx vertx
+     * @param data 需要解压的数据
+     * @return future
+     */
+    public static Future<byte[]> decompressAsync(Vertx vertx,byte [] data) {
+        Promise<byte[]> promise = Promise.promise();
+        decompressAsync(vertx,data,promise);
+        return promise.future();
+    }
+
+    /**
+     * 异步解压
+     *
+     * @param vertx vertx
+     * @param data 需要解压的数据
+     * @param handler 结果处理器
+     */
+    public static void decompressAsync (Vertx vertx,byte[] data, Handler<AsyncResult<byte[]>> handler) {
+        vertx.executeBlocking(promise -> {
+            try {
+                promise.complete(decompress(data));
+            } catch (IOException e) {
+              promise.fail(e);
+            }
+        }, handler);
+    }
 
     /**
      * 解压数据
@@ -45,7 +73,7 @@ public class GZIPUtils {
         GZIPInputStream gis = new GZIPInputStream(is);
         int count;
         byte[] data = new byte[gis.available()];
-        while ((count = gis.read(data, 0, gis.available())) != -1) {
+        while ((count = gis.read(data, 0, gis.available())) != -1 && count != 0) {
             os.write(data, 0, count);
         }
         gis.close();
