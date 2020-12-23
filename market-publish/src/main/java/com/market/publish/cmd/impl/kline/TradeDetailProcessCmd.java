@@ -50,7 +50,7 @@ public class TradeDetailProcessCmd implements Cmd {
         // 只保留30条历史数据
         List<TradeDetailTickData> finalCache = cache;
         if (cache.size() > 30) {
-            finalCache = new ArrayList<>(cache.subList(cache.size() - 30, cache.size() - 1));
+            finalCache = new ArrayList<>(cache.subList(cache.size() - 30, cache.size()));
             ctx.getLatestTradeCache().put(detail.getCh(),finalCache);
         }
 
