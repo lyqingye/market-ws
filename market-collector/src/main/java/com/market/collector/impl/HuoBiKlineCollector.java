@@ -4,6 +4,7 @@ package com.market.collector.impl;
 import com.market.common.def.Period;
 import com.market.common.utils.GZIPUtils;
 import com.market.common.utils.RequestUtils;
+import com.market.common.utils.VertxUtil;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -264,24 +265,21 @@ public class HuoBiKlineCollector extends GenericWsCollector {
 
             // 处理二进制帧并且确保是最终帧
             if (frame.isBinary() && frame.isFinal()) {
-                byte[] data = frame.binaryData()
-                        .getBytes();
-                try {
-                    // 数据解压并且转换为JSON
-                    data = GZIPUtils.decompress(data);
-                    JsonObject obj = (JsonObject) Json.decodeValue(new String(data, StandardCharsets.UTF_8));
-                    // 如果是 ping 消息则需要回复 pong
-                    if (isPingMsg(obj)) {
-                        this.writePong(ws);
-                    } else if (isTickMsg(obj)) {
-                        // 如果是交易 tick 则进行消费
-                        if (consumer != null) {
-                            consumer.accept(obj);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                GZIPUtils.decompressAsync(vertx,frame.binaryData().getBytes())
+                         .onSuccess(data -> {
+                             System.out.println((new String(data, StandardCharsets.UTF_8)));
+                             JsonObject obj = (JsonObject) Json.decodeValue(new String(data, StandardCharsets.UTF_8));
+                             // 如果是 ping 消息则需要回复 pong
+                             if (isPingMsg(obj)) {
+                                 this.writePong(ws);
+                             } else if (isTickMsg(obj)) {
+                                 // 如果是交易 tick 则进行消费
+                                 if (consumer != null) {
+                                     consumer.accept(obj);
+                                 }
+                             }
+                         })
+                         .onFailure(Throwable::printStackTrace);
             }
         });
     }
