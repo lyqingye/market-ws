@@ -121,4 +121,17 @@ public class GZIPUtils {
             }
         }, handler);
     }
+
+    /**
+     * 异步压缩数据
+     *
+     * @param vertx vertx
+     * @param data 需要压缩的数据
+     * @return future
+     */
+    public static Future<Buffer> compressAsync (Vertx vertx,Buffer data) {
+        Promise<Buffer> promise = Promise.promise();
+        compressAsync(vertx,data,promise);
+        return promise.future();
+    }
 }

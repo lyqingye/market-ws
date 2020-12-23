@@ -45,12 +45,8 @@ public class KlinePullCmd implements Cmd {
         // 转换为json二进制
         Buffer jsonBuffer = Json.encodeToBuffer(KlineTemplateResp.ok(req.getId(), req.getReq(), history));
         // 异步压缩
-        GZIPUtils.compressAsync(ctx.getVertx(),jsonBuffer, ar -> {
-            if (ar.succeeded()) {
-                curSession.getSocket().write(ar.result());
-            }else {
-                ar.cause().printStackTrace();
-            }
-        });
+        GZIPUtils.compressAsync(ctx.getVertx(),jsonBuffer)
+            .onSuccess(compressed -> curSession.getSocket().write(compressed))
+            .onFailure(Throwable::printStackTrace);
     }
 }
