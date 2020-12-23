@@ -114,7 +114,7 @@ public class TimeWheel<T extends TimeWheelSlotData> {
     public Collection<T> pull(long start, long end, int partIdx) {
         final int partSize = 300;
         int startIdx = partSize * partIdx;
-        int endIdx = Math.min(startIdx + partSize, numOfPeriod - 1);
+        int endIdx = Math.min(startIdx + partSize, numOfPeriod);
         Collection<T> result = new ArrayList<>(partSize);
         Object[] dataRef = this.data;
         while (startIdx < endIdx) {
