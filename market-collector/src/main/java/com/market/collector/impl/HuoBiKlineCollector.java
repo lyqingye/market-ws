@@ -267,7 +267,6 @@ public class HuoBiKlineCollector extends GenericWsCollector {
             if (frame.isBinary() && frame.isFinal()) {
                 GZIPUtils.decompressAsync(vertx,frame.binaryData().getBytes())
                          .onSuccess(data -> {
-                             System.out.println((new String(data, StandardCharsets.UTF_8)));
                              JsonObject obj = (JsonObject) Json.decodeValue(new String(data, StandardCharsets.UTF_8));
                              // 如果是 ping 消息则需要回复 pong
                              if (isPingMsg(obj)) {
