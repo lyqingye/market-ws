@@ -7,6 +7,7 @@ import com.market.common.eventbus.EventBus;
 import com.market.common.eventbus.impl.EventBusFactory;
 import com.market.common.service.config.ConfigService;
 import com.market.common.service.repository.KlineRepositoryService;
+import com.market.common.utils.VertxUtil;
 import com.market.repository.impl.ConfigServiceImpl;
 import com.market.repository.impl.KlineServiceImpl;
 import com.market.repository.repository.ConfigRepository;
@@ -52,8 +53,14 @@ public class RepositoryVtc extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     EventBus eb = EventBusFactory.eventbus();
+    JsonObject config = config();
+    String redisConnString = "redis://:@localhost:6378/6";
+    if (config != null) {
+      redisConnString = VertxUtil.jsonGetValue(config, "market.repository.redis.connectionString", String.class, redisConnString);
+    }
+    System.out.println("[Market-Repository]: using redis with url: " + redisConnString);
     // 创建redis仓库
-    RedisRepo.create(vertx, "redis://:@localhost:6379/6")
+    RedisRepo.create(vertx, redisConnString)
              .compose(repo -> {
                redisRepo = repo;
                // 创建配置仓库
