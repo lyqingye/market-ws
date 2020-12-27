@@ -107,7 +107,7 @@ public final class VertxUtil {
   @SuppressWarnings("Duplicates")
   public static <T> T jsonGetValue(JsonObject obj, String key, Class<T> clazz, T defaultValue) {
     Objects.requireNonNull(obj);
-    if (key == null || key.isEmpty() || key.isBlank()) {
+    if (key == null || key.isEmpty()) {
       throw new IllegalArgumentException("key is blank");
     }
     if (clazz == null) {
@@ -146,7 +146,7 @@ public final class VertxUtil {
   @SuppressWarnings("Duplicates")
   public static <T> List<T> jsonListValue(JsonObject obj, String key, Class<T> clazz) {
     Objects.requireNonNull(obj);
-    if (key == null || key.isEmpty() || key.isBlank()) {
+    if (key == null || key.isEmpty()) {
       throw new IllegalArgumentException("key is blank");
     }
     if (clazz == null) {
