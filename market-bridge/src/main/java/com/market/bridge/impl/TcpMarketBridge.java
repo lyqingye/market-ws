@@ -63,15 +63,12 @@ public abstract class TcpMarketBridge implements MarketBridge {
     final NetServerOptions options = new NetServerOptions();
     options.setTcpKeepAlive(true);
 
-    // 消息解析器
-    FrameParser parser = new FrameParser();
-
     boolean finalDebug = debug;
     tcpServer = vertx.createNetServer(options)
                      .connectHandler(socket -> {
                        // 保存会话
                        sessionManager.putIfAbsent(socket.writeHandlerID(), TcpSessionWrapper.of(socket));
-
+                       final FrameParser parser = new FrameParser();
                        // 解码器
                        socket.handler(buf -> {
                          // 解码器
