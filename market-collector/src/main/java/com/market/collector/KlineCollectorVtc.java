@@ -55,7 +55,7 @@ public class KlineCollectorVtc extends AbstractVerticle {
         JsonObject config = config();
         String collectorName = VertxUtil.jsonGetValue(config, "market.collector.name", String.class);
         List<String> subscribe = VertxUtil.jsonListValue(config, "market.collector.subscribe", String.class);
-        if (collectorName != null && !collectorName.isBlank()) {
+        if (collectorName != null && !collectorName.isEmpty()) {
             Future<Boolean> future = openService.deployCollector(collectorName)
                                                  .compose(ignored -> openService.startCollector(collectorName));
             for (String subscribeSymbol : subscribe) {
