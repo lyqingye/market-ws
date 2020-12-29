@@ -109,13 +109,12 @@ public class MarketBridgeVtc extends AbstractVerticle {
      */
     @SuppressWarnings("unchecked")
     private void processDepth(Message<?> msg) {
-        vertx.executeBlocking((Handler<Promise<Void>>) promise -> {
+        VertxUtil.asyncFastCallIgnoreRs(vertx, () -> {
             // 盘口数据
             List<DepthTickResp> data = (List<DepthTickResp>) msg.getData();
             EventBusFactory.eventbus()
-                           .publish(Topics.DEPTH_CHART_TOPIC.name(),
-                                    Json.encode(data), promise);
-        }, ignored -> {
+                    .publish(Topics.DEPTH_CHART_TOPIC.name(),
+                            Json.encode(data), ignored -> {});
         });
     }
 

@@ -7,6 +7,7 @@ import com.market.common.messages.bridge.PriceChangeMessage;
 import com.market.common.service.collector.KlineCollectorService;
 import com.market.common.service.collector.dto.CollectorStatusDto;
 import com.market.common.utils.RequestUtils;
+import com.market.common.utils.VertxUtil;
 import io.vertx.core.*;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
@@ -120,7 +121,7 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
         if (collector.deploy(vertx,
                 data -> {
                     // 异步数据处理
-                    vertx.executeBlocking(promise -> {
+                    VertxUtil.asyncFastCallIgnoreRs(vertx, () -> {
                         // 推送k线数据
                         eventBus.publish(Topics.KLINE_TICK_TOPIC.name(), data.encode(), ignored -> {
                         });
@@ -135,9 +136,7 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
                         // 推送价格变动数据
                         eventBus.publish(Topics.MARKET_PRICE_TOPIC.name(), Json.encode(pc), ignored -> {
                         });
-                    }, ignored -> {
                     });
-
                 }, config)) {
             deployMap.put(collectorName, collector);
             handler.handle(Future.succeededFuture(true));
