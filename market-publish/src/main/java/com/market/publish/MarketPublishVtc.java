@@ -91,17 +91,18 @@ public class MarketPublishVtc extends AbstractVerticle {
           if (obj instanceof JsonObject) {
             final Cmd cmd = CmdFactory.createForWs((JsonObject) obj);
             if (cmd != null) {
-              vertx.executeBlocking(promise -> cmd.execute((JsonObject) obj, ctx, wrapper), ignored -> {
+              VertxUtil.asyncFastCallIgnoreRs(vertx, () -> {
+                cmd.execute((JsonObject) obj, ctx, wrapper);
               });
             }
           } else if (obj instanceof JsonArray) {
             final Cmd cmd = CmdFactory.createForWs((JsonArray) obj);
             if (cmd != null) {
-              vertx.executeBlocking(promise -> cmd.execute((JsonArray) obj, ctx, wrapper), ignored -> {
+              VertxUtil.asyncFastCallIgnoreRs(vertx, () -> {
+                cmd.execute((JsonArray) obj, ctx, wrapper);
               });
             }
           }
-
         }
       });
 

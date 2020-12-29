@@ -7,8 +7,10 @@ import com.market.common.messages.payload.kline.KlineTradeResp;
 import com.market.common.session.WsSessionWrapper;
 import com.market.common.utils.GZIPUtils;
 import com.market.common.utils.RequestUtils;
+import com.market.common.utils.VertxUtil;
 import com.market.publish.cmd.Cmd;
 import com.market.publish.context.PublishContext;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -74,7 +76,7 @@ public class KlineTickProcessCmd implements Cmd {
      */
     private void broadcastTick(Map<String, Buffer> updateData,
                                PublishContext ctx) {
-        ctx.getVertx().executeBlocking(promise -> {
+        VertxUtil.asyncFastCallIgnoreRs(ctx.getVertx(), () -> {
             ctx.getKlineSM().values().forEach(wrapper -> {
                 String required = wrapper.getKlineSub();
                 if (required != null) {
@@ -85,7 +87,6 @@ public class KlineTickProcessCmd implements Cmd {
                     }
                 }
             });
-        }, ignored -> {
         });
     }
 
@@ -93,18 +94,17 @@ public class KlineTickProcessCmd implements Cmd {
      *
      * 广播市场详情
      *
-     * @param ctx
-     * @param detail
+     * @param ctx 上下文
+     * @param detail 细节
      */
     private void broadcastDetail(PublishContext ctx, String symbol, Buffer detail) {
         String sub = RequestUtils.toDetailSub(symbol);
-        ctx.getVertx().executeBlocking(promise -> {
+        VertxUtil.asyncFastCallIgnoreRs(ctx.getVertx(), () -> {
             ctx.getDetailSM().values().forEach(wrapper -> {
                 if (wrapper.isSubMarketDetail(sub)) {
                     wrapper.getSocket().write(detail);
                 }
             });
-        }, ignored -> {
         });
     }
 }
