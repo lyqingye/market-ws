@@ -8,13 +8,22 @@ import com.market.common.utils.TimeUtils;
 import com.market.common.utils.VertxUtil;
 import com.market.publish.MarketPublishVtc;
 import com.market.repository.RepositoryVtc;
+import io.netty.channel.Channel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.handler.LoggerFormat;
+import io.vertx.ext.web.handler.LoggerHandler;
+import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
 import lombok.SneakyThrows;
 
 import java.util.concurrent.CompletableFuture;
@@ -24,11 +33,17 @@ import java.util.concurrent.TimeUnit;
  * 单体服务
  */
 public class StandaloneEndpoint {
-  private static final Vertx vertx = Vertx.vertx();
+  private static final Vertx vertx;
+
+  static {
+    VertxOptions options = new VertxOptions();
+    vertx = Vertx.vertx(options);
+    InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+  }
 
     public static void main(String[] args) {
       long start = System.currentTimeMillis();
-      JsonObject config = loadConfig();
+      JsonObject config = VertxUtil.readYamlConfig(vertx,"config.yaml");
       // 创建本地事件总线
         EventBusFactory.createLocalEventBus(1 << 16);
         vertx.exceptionHandler(Throwable::printStackTrace);
@@ -45,26 +60,5 @@ public class StandaloneEndpoint {
                    fail.printStackTrace();
                    System.exit(-1);
                  });
-    }
-
-    @SneakyThrows
-    private static JsonObject loadConfig() {
-      ConfigStoreOptions fileStore = new ConfigStoreOptions()
-          .setType("file")
-          .setFormat("yaml")
-          .setConfig(new JsonObject().put("path", "config.yaml"));
-
-      ConfigRetrieverOptions options = new ConfigRetrieverOptions()
-          .addStore(fileStore);
-      ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
-      CompletableFuture<JsonObject> cf = new CompletableFuture<>();
-      retriever.getConfig(ar -> {
-        if (ar.succeeded()) {
-          cf.complete(ar.result());
-        }else {
-          cf.completeExceptionally(ar.cause());
-        }
-      });
-      return cf.get();
     }
 }

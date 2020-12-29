@@ -1,14 +1,19 @@
 package com.market.common.utils;
 
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.AsyncMap;
+import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public final class VertxUtil {
 
@@ -174,6 +179,33 @@ public final class VertxUtil {
       }
     }
     return result;
+  }
+
+  /**
+   * 读入YAML配置文件
+   *
+   * @param vertx vertx
+   * @param path path
+   * @return json对象
+   */
+  @SneakyThrows
+  public static JsonObject readYamlConfig (Vertx vertx,String path) {
+    ConfigStoreOptions fileStore = new ConfigStoreOptions()
+            .setType("file")
+            .setFormat("yaml")
+            .setConfig(new JsonObject().put("path", path));
+    ConfigRetrieverOptions options = new ConfigRetrieverOptions()
+            .addStore(fileStore);
+    ConfigRetriever retriever = ConfigRetriever.create(vertx, options);
+    CompletableFuture<JsonObject> cf = new CompletableFuture<>();
+    retriever.getConfig(ar -> {
+      if (ar.succeeded()) {
+        cf.complete(ar.result());
+      }else {
+        cf.completeExceptionally(ar.cause());
+      }
+    });
+    return cf.get();
   }
 }
 

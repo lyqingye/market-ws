@@ -8,15 +8,13 @@ market:
         debug: false
     api:
       http:
-        host: localhost
+        host: 0.0.0.0
         port: 8087
         debug: false
 
   collector:
     name: com.market.collector.impl.HuoBiKlineCollector
     subscribe:
-      - BTC-USDT
-      - ETH-USDT
     debug: false
 
   publish:
