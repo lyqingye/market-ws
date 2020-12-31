@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public class DisruptorEventBus implements EventBus {
@@ -28,6 +27,8 @@ public class DisruptorEventBus implements EventBus {
      */
     private ConcurrentHashMap<String, List<ConsumerWrapper>> topicConsumerMap;
 
+    private ConcurrentHashMap<String, ExecutorService> topicExecutorMap;
+
     public DisruptorEventBus(int queueSize, ThreadFactory tf) {
         queue = DisruptorQueueFactory.createQueue(queueSize, tf, new AbstractDisruptorConsumer<MessageWrapper>() {
             @Override
@@ -37,13 +38,19 @@ public class DisruptorEventBus implements EventBus {
                     for (ConsumerWrapper wrapper : wrappers) {
                         Consumer<Object> consumer = wrapper.getConsumer();
                         if (consumer != null) {
-                            consumer.accept(event.getData());
+                            ExecutorService executorService = topicExecutorMap.get(event.getTopic());
+                            if (executorService != null) {
+                              executorService.submit(() -> {
+                                  consumer.accept(event.getData());
+                              });
+                            }
                         }
                     }
                 }
             }
         });
         topicConsumerMap = new ConcurrentHashMap<>(16);
+        topicExecutorMap = new ConcurrentHashMap<>(16);
     }
 
     /**
@@ -80,6 +87,14 @@ public class DisruptorEventBus implements EventBus {
         consumerWrapper.setConsumer(Objects.requireNonNull(consumer));
         topicConsumerMap.computeIfAbsent(topic, k -> new Vector<>())
                 .add(consumerWrapper);
+        topicExecutorMap.computeIfAbsent(topic, k -> Executors.newFixedThreadPool(1, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("EventBus-Topic-" + topic);
+                return thread;
+            }
+        }));
         handler.handle(Future.succeededFuture(consumerWrapper.getRegistryId()));
     }
 
@@ -98,6 +113,14 @@ public class DisruptorEventBus implements EventBus {
         consumerWrapper.setConsumer(Objects.requireNonNull(consumer));
         topicConsumerMap.computeIfAbsent(topic, k -> new Vector<>())
                 .add(consumerWrapper);
+        topicExecutorMap.computeIfAbsent(topic, k -> Executors.newFixedThreadPool(1, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("Eventbus-Topic-" + topic);
+                return thread;
+            }
+        }));
         promise.complete(consumerWrapper.getRegistryId());
         return promise.future();
     }
