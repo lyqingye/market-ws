@@ -164,7 +164,6 @@ public class KlineTimeLine {
                 int sPos = roteCount;
                 int dPos = 0;
                 int length = numOfPeriod - roteCount;
-                System.out.println("before: " + dumpData());
                 for (int i = 0; i < length;i ++ ) {
                     this.data[dPos] = this.data[sPos];
                     // clear src data
@@ -173,7 +172,6 @@ public class KlineTimeLine {
                     dPos++;
                     sPos++;
                 }
-                System.out.println("after: " + dumpData());
             } else {
                 Arrays.fill(this.data, null);
             }
