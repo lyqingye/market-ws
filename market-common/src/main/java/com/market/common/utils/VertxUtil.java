@@ -81,7 +81,10 @@ public final class VertxUtil {
     vertx.executeBlocking(promise -> {
       cmd.run();
       promise.complete();
-    }, ignored -> {
+    }, rs -> {
+      if (rs.failed()) {
+        rs.cause().printStackTrace();
+      }
     });
   }
 
