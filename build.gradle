@@ -47,6 +47,10 @@ subprojects {
         // hazelcast集群管理 (这玩意是可选的, 打包单体服务已经把他排除了)
         compile 'io.vertx:vertx-hazelcast:3.9.4'
 
+        compile 'org.slf4j:slf4j-api:1.7.22'
+        compile 'org.slf4j:slf4j-log4j12:1.7.22'
+//        compile 'org.slf4j:slf4j-simple:1.7.22'
+
         task annotationProcessing(type: JavaCompile) { // codegen
             group 'build'
             description 'Generates the Vert.x proxies'
