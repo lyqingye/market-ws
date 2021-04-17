@@ -38,7 +38,7 @@ public class StandaloneEndpoint {
   static {
     VertxOptions options = new VertxOptions();
     vertx = Vertx.vertx(options);
-    InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+    InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
   }
 
     public static void main(String[] args) {
@@ -52,7 +52,7 @@ public class StandaloneEndpoint {
                  .compose(ignored -> VertxUtil.deploy(vertx, new KlineCollectorVtc(),config))
                  .compose(ignored -> VertxUtil.deploy(vertx, new MarketBridgeVtc(), config))
                  .onSuccess(ignored -> {
-                   
+
                    System.out.println("[StandaloneEndpoint]: start success, using " +
                                       (System.currentTimeMillis() - start) + " ms");
                  })

@@ -61,7 +61,7 @@ public class KlineTickProcessCmd implements Cmd {
             String key = RequestUtils.toKlineSub(symbol, period);
             Buffer jsonBuffer = Json.encodeToBuffer(new KlineTradeResp(key, wheel.updateNow(tick).clone()));
             try {
-                updated.put(key, GZIPUtils.compress(jsonBuffer));
+                updated.put(key, Buffer.buffer(GZIPUtils.compress(jsonBuffer.getBytes())));
             } catch (IOException e) {
                 e.printStackTrace();
             }

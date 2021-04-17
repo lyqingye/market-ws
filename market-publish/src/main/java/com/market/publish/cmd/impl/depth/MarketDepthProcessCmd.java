@@ -42,7 +42,7 @@ public class MarketDepthProcessCmd implements Cmd {
             String sub = json.getString("ch");
             Buffer buffer = null;
             try {
-                buffer = GZIPUtils.compress(json.toBuffer());
+                buffer = Buffer.buffer(GZIPUtils.compress(json.toBuffer().getBytes()));
             } catch (IOException e) {
                 e.printStackTrace();
             }

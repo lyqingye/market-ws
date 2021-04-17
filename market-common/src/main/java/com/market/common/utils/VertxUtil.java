@@ -79,8 +79,13 @@ public final class VertxUtil {
    */
   public static void asyncFastCallIgnoreRs(Vertx vertx, Runnable cmd) {
     vertx.executeBlocking(promise -> {
-      cmd.run();
-      promise.complete();
+      try {
+        cmd.run();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }finally {
+        promise.complete();
+      }
     }, rs -> {
       if (rs.failed()) {
         rs.cause().printStackTrace();

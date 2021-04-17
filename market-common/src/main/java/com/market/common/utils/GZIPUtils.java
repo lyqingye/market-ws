@@ -37,11 +37,13 @@ public class GZIPUtils {
      */
     public static void decompressAsync (Vertx vertx,byte[] data, Handler<AsyncResult<byte[]>> handler) {
         vertx.executeBlocking(promise -> {
-            try {
-                promise.complete(decompress(data));
-            } catch (IOException e) {
-              promise.fail(e);
-            }
+            decompress(data, h -> {
+                if (h.succeeded()) {
+                    promise.complete(h.result());
+                }else {
+                    promise.fail(h.cause());
+                }
+            });
         }, handler);
     }
 
@@ -52,20 +54,23 @@ public class GZIPUtils {
      * @return 解压后的数据
      * @throws IOException 如果解压失败
      */
-    public static byte[] decompress(byte[] data) throws IOException {
+    public static void decompress(byte[] data,Handler<AsyncResult<byte[]>> handler){
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             decompress(bais, baos);
             baos.flush();
-            return baos.toByteArray();
+            handler.handle(Future.succeededFuture(baos.toByteArray()));
         }catch (Exception ex) {
-            ex.printStackTrace();
+            handler.handle(Future.failedFuture(ex));
         } finally {
-            baos.close();
-            bais.close();
+            try {
+                baos.close();
+                bais.close();
+            }catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
-        return null;
     }
 
     /**
@@ -92,6 +97,14 @@ public class GZIPUtils {
      * @return 压缩后的数据
      * @throws IOException 如果压缩失败
      */
+    public static void compress(byte[] data,Handler<AsyncResult<byte[]>> handler)  {
+        try {
+            handler.handle(Future.succeededFuture(compress(data)));
+        } catch (IOException exception) {
+            handler.handle(Future.failedFuture(exception));
+        }
+    }
+
     public static byte[] compress(byte[] data) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
         try (GZIPOutputStream gos = new GZIPOutputStream(bos)) {
@@ -100,24 +113,14 @@ public class GZIPUtils {
             gos.flush();
             gos.close();
             return bos.toByteArray();
-        }catch (IOException ex){
-            ex.printStackTrace();
         }
         finally {
-            bos.close();
+            try {
+                bos.close();
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
         }
-        return null;
-    }
-
-    /**
-     * 压缩数据
-     *
-     * @param data 需要压缩的数据
-     * @return 压缩后的数据
-     * @throws IOException 如果压缩失败
-     */
-    public static Buffer compress(Buffer data) throws IOException {
-        return Buffer.buffer(compress(data.getBytes()));
     }
 
     /**
@@ -129,11 +132,13 @@ public class GZIPUtils {
      */
     public static void compressAsync(Vertx vertx,Buffer data, Handler<AsyncResult<Buffer>> handler) {
         vertx.executeBlocking(promise -> {
-            try {
-                promise.complete(compress(data));
-            } catch (IOException e) {
-                promise.fail(e);
-            }
+            compress(data.getBytes(),h -> {
+                if (h.succeeded()) {
+                    promise.complete(Buffer.buffer(h.result()));
+                }else {
+                    promise.fail(h.cause());
+                }
+            });
         }, handler);
     }
 

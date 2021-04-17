@@ -59,7 +59,7 @@ public class TradeDetailProcessCmd implements Cmd {
         detail.getTick().setData(finalCache);
         Buffer buffer = null;
         try {
-            buffer = GZIPUtils.compress(Json.encodeToBuffer(detail));
+            buffer = Buffer.buffer(GZIPUtils.compress(Json.encodeToBuffer(detail).getBytes()));
         } catch (IOException e) {
             e.printStackTrace();
         }

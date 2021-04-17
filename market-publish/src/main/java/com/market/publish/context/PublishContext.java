@@ -119,7 +119,7 @@ public class PublishContext {
         MarketDetailResp resp = MarketDetailResp.of(detailSub, detail);
         Buffer buffer = null;
         try {
-            buffer = GZIPUtils.compress(Json.encodeToBuffer(resp));
+            buffer = Buffer.buffer(GZIPUtils.compress(Json.encodeToBuffer(resp).getBytes()));
         } catch (IOException e) {
             e.printStackTrace();
         }
