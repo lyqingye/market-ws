@@ -79,7 +79,10 @@ public class KlineCollectorVtc extends AbstractVerticle {
             openService.listCollector(cr -> {
                 if (cr.succeeded()) {
                     for (CollectorStatusDto collector : cr.result()) {
-                        openService.stopCollector(collector.getName(), ignored -> {
+                        openService.stopCollector(collector.getName(), stopRs -> {
+                            if (stopRs.failed()) {
+                                stopRs.cause().printStackTrace();
+                            }
                         });
                     }
                 }

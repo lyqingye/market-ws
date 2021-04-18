@@ -141,8 +141,7 @@ public class MarketBridgeVtc extends AbstractVerticle {
 
     @Override
     public void stop(Promise<Void> stopPromise) throws Exception {
-        this.bridge.stop(ignored -> {
-        });
+        this.bridge.stop(stopPromise);
     }
 
     /**

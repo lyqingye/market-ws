@@ -50,7 +50,10 @@ public class ConfigServiceImpl implements ConfigService {
                             return repository.c2gMappings()
                                              .compose(mappings -> {
                                                  for (Mapping mapping : mappings) {
-                                                     impl.c2gMappings.put(mapping.getSource(), mapping.getTarget(), ignored -> {
+                                                     impl.c2gMappings.put(mapping.getSource(), mapping.getTarget(), putRs -> {
+                                                         if (putRs.failed()) {
+                                                             putRs.cause().printStackTrace();
+                                                         }
                                                      });
                                                  }
                                                  return Future.succeededFuture();
@@ -62,7 +65,10 @@ public class ConfigServiceImpl implements ConfigService {
                             return repository.g2cMappings()
                                              .compose(mappings -> {
                                                  for (Mapping mapping : mappings) {
-                                                     impl.g2cMappings.put(mapping.getSource(), mapping.getTarget(), ignored -> {
+                                                     impl.g2cMappings.put(mapping.getSource(), mapping.getTarget(), putRs -> {
+                                                         if (putRs.failed()) {
+                                                             putRs.cause().printStackTrace();
+                                                         }
                                                      });
                                                  }
                                                  return Future.succeededFuture();
@@ -82,10 +88,15 @@ public class ConfigServiceImpl implements ConfigService {
     public void putC2G(String custom, String generic, Handler<AsyncResult<Void>> handler) {
         repo.putC2G(custom, generic, store -> {
             if (store.succeeded()) {
-                c2gMappings.put(custom, generic, handler);
-                // 更新 g2c
-                this.putG2C(generic, custom, ignored -> {
+                c2gMappings.put(custom, generic, h -> {
+                    if (h.succeeded()) {
+                        // 更新 g2c
+                        this.putG2C(generic, custom, handler);
+                    }else {
+                        handler.handle(Future.failedFuture(h.cause()));
+                    }
                 });
+
             } else {
                 handler.handle(Future.failedFuture(store.cause()));
             }

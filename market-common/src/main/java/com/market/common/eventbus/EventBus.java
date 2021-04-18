@@ -25,9 +25,9 @@ public interface EventBus {
      * @param message 消息
      */
     default void publishIgnoreRs(String topic,Object message) {
-        publish(topic,message,ignored -> {
-            if (ignored.failed()) {
-                ignored.cause().printStackTrace();
+        publish(topic,message,rs -> {
+            if (rs.failed()) {
+                rs.cause().printStackTrace();
             }
         });
     }

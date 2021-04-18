@@ -115,7 +115,8 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
         if (configJson != null) {
             try {
                 config = (JsonObject) Json.decodeValue(configJson);
-            } catch (DecodeException ignored) {
+            } catch (DecodeException ex) {
+                handler.handle(Future.failedFuture(ex));
             }
         }
         if (collector.deploy(vertx,

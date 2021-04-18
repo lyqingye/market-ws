@@ -174,17 +174,26 @@ public class MarketPublishVtc extends AbstractVerticle {
 
     // 订阅k线数据
     EventBusFactory.eventbus()
-                   .subscribe(Topics.KLINE_TICK_TOPIC.name(), consumer, ignored -> {
+                   .subscribe(Topics.KLINE_TICK_TOPIC.name(), consumer, subRs -> {
+                     if (subRs.failed()) {
+                       subRs.cause().printStackTrace();
+                     }
                    });
 
     // 订阅深度数据
     EventBusFactory.eventbus()
-                   .subscribe(Topics.DEPTH_CHART_TOPIC.name(), consumer, ignored -> {
+                   .subscribe(Topics.DEPTH_CHART_TOPIC.name(), consumer, subRs -> {
+                     if (subRs.failed()) {
+                       subRs.cause().printStackTrace();
+                     }
                    });
 
     // 订阅成交细节数据
     EventBusFactory.eventbus()
-                   .subscribe(Topics.TRADE_DETAIL_TOPIC.name(), consumer, ignored -> {
+                   .subscribe(Topics.TRADE_DETAIL_TOPIC.name(), consumer, subRs -> {
+                     if (subRs.failed()) {
+                       subRs.cause().printStackTrace();
+                     }
                    });
   }
 
