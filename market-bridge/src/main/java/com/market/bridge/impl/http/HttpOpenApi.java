@@ -379,9 +379,8 @@ public class HttpOpenApi implements OpenApi {
                                                 tm.setQuantity(BigDecimal.valueOf(0.00000001));
                                                 tm.setPrice(dto.getPrice());
                                                 tm.setTs(System.currentTimeMillis());
-                                                EventBusFactory.eventbus().publish(Topics.KLINE_TICK_TOPIC.name(),
-                                                        Json.encode(new KlineTradeResp(tm)), ignored -> {
-                                                        });
+                                                EventBusFactory.eventbus().publishIgnoreRs(Topics.KLINE_TICK_TOPIC.name(),
+                                                        Json.encode(new KlineTradeResp(tm)));
                                                 buf.response().end(R.success());
 
                                                 PriceChangeMessage pc = new PriceChangeMessage();
@@ -390,8 +389,7 @@ public class HttpOpenApi implements OpenApi {
                                                 pc.setSource("HTTP");
 
                                                 // 推送价格变动数据
-                                                EventBusFactory.eventbus().publish(Topics.MARKET_PRICE_TOPIC.name(), Json.encode(pc), ignored -> {
-                                                });
+                                                EventBusFactory.eventbus().publishIgnoreRs(Topics.MARKET_PRICE_TOPIC.name(), Json.encode(pc));
                                             } else {
                                                 buf.response().end(R.error(store.cause()));
                                             }

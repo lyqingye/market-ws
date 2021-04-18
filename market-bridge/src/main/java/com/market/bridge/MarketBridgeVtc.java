@@ -113,8 +113,7 @@ public class MarketBridgeVtc extends AbstractVerticle {
             // 盘口数据
             List<DepthTickResp> data = (List<DepthTickResp>) msg.getData();
             EventBusFactory.eventbus()
-                    .publish(Topics.DEPTH_CHART_TOPIC.name(),
-                            Json.encode(data), ignored -> {});
+                    .publishIgnoreRs(Topics.DEPTH_CHART_TOPIC.name(), Json.encode(data));
         });
     }
 

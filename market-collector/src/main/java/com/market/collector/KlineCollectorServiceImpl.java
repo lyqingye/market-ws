@@ -123,8 +123,7 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
                     // 异步数据处理
                     VertxUtil.asyncFastCallIgnoreRs(vertx, () -> {
                         // 推送k线数据
-                        eventBus.publish(Topics.KLINE_TICK_TOPIC.name(), data.encode(), ignored -> {
-                        });
+                        eventBus.publishIgnoreRs(Topics.KLINE_TICK_TOPIC.name(), data.encode());
 
                         // 从K线数据构造价格变动数据, 根据收盘价
                         String symbol = RequestUtils.getSymbolFromKlineSub(data.getString("ch"));
@@ -134,8 +133,7 @@ public class KlineCollectorServiceImpl implements KlineCollectorService {
                         pc.setSource(collectorName);
 
                         // 推送价格变动数据
-                        eventBus.publish(Topics.MARKET_PRICE_TOPIC.name(), Json.encode(pc), ignored -> {
-                        });
+                        eventBus.publishIgnoreRs(Topics.MARKET_PRICE_TOPIC.name(), Json.encode(pc));
                     });
                 }, config)) {
             deployMap.put(collectorName, collector);
