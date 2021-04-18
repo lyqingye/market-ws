@@ -1,12 +1,40 @@
+
+buildscript {
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.15'
+    }
+}
+
 plugins {
+    id 'com.google.protobuf' version '0.8.15'
     id 'java'
 }
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.2.0'
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.25.0"
+        }
+        vertx {
+            artifact = "io.vertx:vertx-grpc-protoc-plugin:4.0.0"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc
+            vertx
+        }
+    }
+}
+apply plugin: 'com.google.protobuf'
 
 group 'org.market'
 version '1.0'
 
 sourceCompatibility = 1.8
-
 mainClassName = 'com.market.bridge.MarketBridgeVtc'
 
 shadowJar {
@@ -15,11 +43,18 @@ shadowJar {
         include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
     }
 }
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    compile 'io.vertx:vertx-grpc:4.0.2'
+    compile 'com.google.protobuf:protobuf-java:3.2.0'
+//    compile 'io.grpc:grpc-netty-shaded:1.37.0'
+//    compile 'io.grpc:grpc-protobuf:1.37.0'
+//    compile 'io.grpc:grpc-stub:1.37.0'
+//    compile 'io.grpc:grpc-api:1.37.0'
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile project (":market-common")
 }
