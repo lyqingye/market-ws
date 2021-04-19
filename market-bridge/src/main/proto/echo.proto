@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.market.bridge";
+option java_outer_classname = "EchoProto";
+package echo;
+
+service Echo {
+  rpc Echo (EchoRequest) returns (EchoReply) {}
+}
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoReply {
+  string message = 1;
+}

@@ -25,9 +25,9 @@ public final class VertxUtil {
    * @return future
    */
   public static Future<String> deploy(Vertx vertx, Verticle verticle) {
-    Future<String> future = Promise.<String>promise().future();
-    vertx.deployVerticle(verticle, future);
-    return future;
+    Promise<String> promise = Promise.<String>promise();
+    vertx.deployVerticle(verticle, promise);
+    return promise.future();
   }
 
   /**
@@ -39,9 +39,9 @@ public final class VertxUtil {
    * @return future
    */
   public static Future<String> deploy(Vertx vertx, Verticle verticle, DeploymentOptions options) {
-    Future<String> future = Promise.<String>promise().future();
-    vertx.deployVerticle(verticle, options, future);
-    return future;
+    Promise<String> promise = Promise.<String>promise();
+    vertx.deployVerticle(verticle, options, promise);
+    return promise.future();
   }
 
   /**

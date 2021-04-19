@@ -7,6 +7,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class HazelcastEventBus implements EventBus {
@@ -43,9 +44,9 @@ public class HazelcastEventBus implements EventBus {
      */
     @Override
     public void subscribe(String topic, Consumer<Object> consumer, Handler<AsyncResult<String>> handler) {
-        String registryId = haze.getTopic(topic)
+        UUID registryId = haze.getTopic(topic)
                 .addMessageListener(message -> consumer.accept(message.getMessageObject()));
-        handler.handle(Future.succeededFuture(registryId));
+        handler.handle(Future.succeededFuture(registryId.toString()));
     }
 
     /**
@@ -58,7 +59,7 @@ public class HazelcastEventBus implements EventBus {
     @Override
     public void unSubscribe(String topic, String registryId, Handler<AsyncResult<Void>> handler) {
         if (haze.getTopic(topic)
-                .removeMessageListener(registryId)) {
+                .removeMessageListener(UUID.fromString(registryId))) {
             handler.handle(Future.succeededFuture());
         } else {
             handler.handle(Future.failedFuture("unSubscribe fail!"));

@@ -176,8 +176,8 @@ public class RedisRepo {
   @SuppressWarnings("unchecked")
   private <T> T responseToObj(Response r) {
     switch (r.type()) {
-      case INTEGER: {
-        return (T) r.toInteger();
+      case NUMBER: {
+        return (T) Integer.valueOf(r.toNumber().intValue());
       }
       case MULTI:
       case BULK: {

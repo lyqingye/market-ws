@@ -82,7 +82,7 @@ public class MarketPublishVtc extends AbstractVerticle {
 
     // 会话管理器 (支持ttl)
     final SessionManager<WsSessionWrapper> sm = ctx.getSm();
-    ws = vertx.createHttpServer().webSocketHandler(ws -> {
+    vertx.createHttpServer().webSocketHandler(ws -> {
       // 更新ttl
       WsSessionWrapper wrapper = sm.get(ws.textHandlerID(), k -> WsSessionWrapper.of(ws));
       ws.frameHandler(frame -> {
@@ -112,7 +112,11 @@ public class MarketPublishVtc extends AbstractVerticle {
         ctx.getKlineSM().remove(ws.textHandlerID());
         ctx.getDetailSM().remove(ws.textHandlerID());
       });
-    }).listen(port, host);
+    }).listen(port, host)
+            .onSuccess( rs -> {
+              ws = rs;
+            })
+            .onFailure(Throwable::printStackTrace);
 
     // 定时发送心跳
     boolean finalCompressPing = compressPing;
