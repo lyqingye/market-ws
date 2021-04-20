@@ -15,6 +15,7 @@ market:
   collector:
     name: com.market.collector.impl.HuoBiKlineCollector
     subscribe:
+      - BTC-USDT
     debug: false
 
   publish:

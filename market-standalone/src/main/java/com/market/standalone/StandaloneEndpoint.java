@@ -25,6 +25,7 @@ import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 单体服务
  */
+@Slf4j
 public class StandaloneEndpoint {
   private static final Vertx vertx;
 
@@ -52,9 +54,7 @@ public class StandaloneEndpoint {
                  .compose(ignored -> VertxUtil.deploy(vertx, new KlineCollectorVtc(),config))
                  .compose(ignored -> VertxUtil.deploy(vertx, new MarketBridgeVtc(), config))
                  .onSuccess(ignored -> {
-
-                   System.out.println("[StandaloneEndpoint]: start success, using " +
-                                      (System.currentTimeMillis() - start) + " ms");
+                    log.info("[StandaloneEndpoint]: start success, using {} ms", (System.currentTimeMillis() - start));
                  })
                  .onFailure(fail -> {
                    fail.printStackTrace();
