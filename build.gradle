@@ -62,9 +62,7 @@ subprojects {
         maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
     }
 
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
-    }
+
 }
 group 'org.market'
 version '1.0-SNAPSHOT'

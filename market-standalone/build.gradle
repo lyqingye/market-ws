@@ -1,5 +1,31 @@
+buildscript {
+    dependencies {
+        classpath "gradle.plugin.org.mikeneck:graalvm-native-image-plugin:1.3.0"
+    }
+}
+
 plugins {
     id 'java'
+}
+
+apply plugin: "org.mikeneck.graalvm-native-image"
+nativeImage {
+    graalVmHome = System.getenv("GRAALVM_HOME")
+    mainClass = 'com.market.standalone.StandaloneEndpoint'
+    executableName = 'StandaloneEndpoint'
+    outputDirectory = file("$buildDir/bin")
+    arguments(
+//            '--no-fallback',
+//            '--enable-all-security-services',
+//            '--initialize-a-run-time=com.market.standalone.StandaloneEndpoint',
+            '--report-unsupported-elements-at-runtime',
+            '--trace-class-initialization=org.slf4j.LoggerFactory',
+            '-H:IncludeResources=.*.xml|.*.conf',
+            '-H:+ReportUnsupportedElementsAtRuntime',
+//            '-H:TraceClassInitialization=true',
+            '--initialize-at-build-time=org.slf4j.simple.SimpleLogger,org.slf4j.LoggerFactory,org.slf4j.impl.StaticLoggerBinder,org.apache.log4j.Logger,org.apache.log4j.helpers.LogLog,org.apache.log4j.Category,org.apache.log4j.LogManager,org.slf4j.impl.Log4jLoggerAdapter,org.apache.log4j.helpers.Loader,org.slf4j.impl.Log4jLoggerFactory,org.apache.log4j.spi.LoggingEvent',
+            '--verbose'
+    )
 }
 
 group 'org.market'
@@ -30,7 +56,7 @@ shadowJar {
 
     // 单体服务忽略集群中间件的依赖, 这样就很完美
     dependencies {
-        exclude(dependency('io.vertx:vertx-hazelcast:3.9.4'))
-        exclude(dependency('com.hazelcast:hazelcast:3.12.2'))
+        exclude(dependency('io.vertx:vertx-hazelcast:4.0.0'))
+        exclude(dependency('com.hazelcast:hazelcast:4.0.2'))
     }
 }
