@@ -15,14 +15,10 @@ nativeImage {
     executableName = 'StandaloneEndpoint'
     outputDirectory = file("$buildDir/bin")
     arguments(
-//            '--no-fallback',
-//            '--enable-all-security-services',
-//            '--initialize-a-run-time=com.market.standalone.StandaloneEndpoint',
             '--report-unsupported-elements-at-runtime',
             '--trace-class-initialization=org.slf4j.LoggerFactory',
             '-H:IncludeResources=.*.xml|.*.conf',
             '-H:+ReportUnsupportedElementsAtRuntime',
-//            '-H:TraceClassInitialization=true',
             '--initialize-at-build-time=org.slf4j.simple.SimpleLogger,org.slf4j.LoggerFactory,org.slf4j.impl.StaticLoggerBinder,org.apache.log4j.Logger,org.apache.log4j.helpers.LogLog,org.apache.log4j.Category,org.apache.log4j.LogManager,org.slf4j.impl.Log4jLoggerAdapter,org.apache.log4j.helpers.Loader,org.slf4j.impl.Log4jLoggerFactory,org.apache.log4j.spi.LoggingEvent',
             '--verbose'
     )
